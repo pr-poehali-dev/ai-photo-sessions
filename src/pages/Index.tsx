@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
@@ -9,8 +9,36 @@ const Index = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<string>('');
   const [language, setLanguage] = useState<Language>('ru');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{type: string, name: string, action: () => void}>>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   
   const t = translations[language];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+        searchInput?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const themes = [
     { id: 'professional', name: t.themes.professional, icon: 'Briefcase' },
@@ -45,6 +73,75 @@ const Index = () => {
     }
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    const results: Array<{type: string, name: string, action: () => void}> = [];
+    const lowerQuery = query.toLowerCase();
+
+    const sections = [
+      { name: t.nav.home, keywords: ['главная', 'home', 'начало', 'старт', 'домой'], action: () => setActiveTab('home') },
+      { name: t.nav.generator, keywords: ['генератор', 'generator', 'создать', 'generate', 'фото', 'photo', 'сгенерировать'], action: () => setActiveTab('generator') },
+      { name: t.nav.gallery, keywords: ['галерея', 'gallery', 'мои', 'работы', 'коллекция', 'мои фото'], action: () => setActiveTab('gallery') },
+      { name: t.nav.examples, keywords: ['примеры', 'examples', 'образцы', 'идеи', 'вдохновение'], action: () => setActiveTab('examples') },
+      { name: t.nav.prompts, keywords: ['промты', 'prompts', 'подсказки', 'запросы', 'описания', 'текст'], action: () => setActiveTab('prompts') },
+      { name: t.nav.faq, keywords: ['faq', 'вопросы', 'помощь', 'частые', 'ответы', 'как'], action: () => setActiveTab('faq') },
+      { name: t.nav.pricing, keywords: ['тарифы', 'pricing', 'цены', 'планы', 'подписка', 'оплата', 'стоимость'], action: () => setActiveTab('pricing') },
+      { name: t.nav.support, keywords: ['поддержка', 'support', 'контакты', 'связь', 'написать', 'помощь'], action: () => setActiveTab('support') }
+    ];
+
+    const themeKeywords: Record<string, string[]> = {
+      professional: ['профессиональные', 'деловые', 'бизнес', 'офис', 'костюм', 'работа'],
+      fashion: ['модные', 'мода', 'стиль', 'vogue', 'журнал', 'подиум'],
+      casual: ['повседневные', 'casual', 'простые', 'обычные', 'каждый день'],
+      outdoor: ['уличные', 'улица', 'outdoor', 'город', 'городские'],
+      vintage: ['винтажные', 'ретро', 'старые', '70', 'винтаж'],
+      studio: ['студийные', 'студия', 'фотостудия', 'professional']
+    };
+
+    sections.forEach(section => {
+      if (section.name.toLowerCase().includes(lowerQuery) || 
+          section.keywords.some(k => k.includes(lowerQuery))) {
+        results.push({ type: 'Раздел', name: section.name, action: section.action });
+      }
+    });
+
+    themes.forEach(theme => {
+      const keywords = themeKeywords[theme.id] || [];
+      if (theme.name.toLowerCase().includes(lowerQuery) || 
+          keywords.some(k => k.includes(lowerQuery))) {
+        results.push({ 
+          type: 'Образ', 
+          name: theme.name, 
+          action: () => {
+            setSelectedTheme(theme.id);
+            setActiveTab('generator');
+          }
+        });
+      }
+    });
+
+    if (t.prompts && t.prompts.categories) {
+      t.prompts.categories.forEach(category => {
+        if (category.title.toLowerCase().includes(lowerQuery)) {
+          results.push({ 
+            type: 'Промты', 
+            name: category.title, 
+            action: () => setActiveTab('prompts')
+          });
+        }
+      });
+    }
+
+    setSearchResults(results);
+    setShowSearchResults(true);
+  };
+
   const handleGenerate = () => {
     console.log('Generating with theme:', selectedTheme);
   };
@@ -65,6 +162,60 @@ const Index = () => {
               </span>
             </div>
             <div className="flex items-center gap-6">
+              <div className="relative" ref={searchRef}>
+                <div className="relative">
+                  <Icon name="Search" size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder={language === 'ru' ? 'Поиск образов, разделов...' : 'Search styles, sections...'}
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    onFocus={() => searchResults.length > 0 && setShowSearchResults(true)}
+                    className="w-64 bg-white/5 border border-white/10 rounded-xl pl-11 pr-20 py-2.5 text-white placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                  <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 px-2 py-1 text-xs text-gray-400 bg-white/5 border border-white/10 rounded">
+                    ⌘K
+                  </kbd>
+                </div>
+                
+                {showSearchResults && (
+                  <div className="absolute top-full mt-2 w-80 glass-effect border border-white/10 rounded-xl shadow-2xl max-h-96 overflow-y-auto z-50">
+                    {searchResults.length > 0 ? (
+                      searchResults.map((result, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            result.action();
+                            setShowSearchResults(false);
+                            setSearchQuery('');
+                          }}
+                          className="w-full px-5 py-3 flex items-center gap-3 hover:bg-white/10 transition-all text-left border-b border-white/5 last:border-0"
+                        >
+                          <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center flex-shrink-0">
+                            <Icon name={result.type === 'Раздел' ? 'Layout' : result.type === 'Образ' ? 'Image' : 'FileText'} size={16} className="text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white font-semibold">{result.name}</p>
+                            <p className="text-gray-400 text-sm">{result.type}</p>
+                          </div>
+                          <Icon name="ArrowRight" size={16} className="text-gray-400" />
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-5 py-8 text-center">
+                        <Icon name="SearchX" size={40} className="text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-300 font-medium mb-1">
+                          {language === 'ru' ? 'Ничего не найдено' : 'Nothing found'}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          {language === 'ru' ? 'Попробуйте другой запрос' : 'Try another search'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <Button 
                 variant="ghost" 
                 className="text-white hover:text-primary hover:bg-white/5"
