@@ -5,6 +5,7 @@ export const translations = {
       generator: 'Генератор',
       gallery: 'Галерея',
       examples: 'Примеры',
+      prompts: 'Промты',
       faq: 'FAQ',
       pricing: 'Тарифы',
       support: 'Поддержка',
@@ -115,6 +116,37 @@ export const translations = {
     },
     footer: {
       copyright: '© 2025 PhotoSet. Все права защищены.'
+    },
+    prompts: {
+      title: 'Промты для генерации',
+      subtitle: 'Примеры эффективных промтов для создания идеальных фотосессий',
+      categories: [
+        {
+          title: 'Профессиональные портреты',
+          prompts: [
+            'Деловой портрет в костюме, нейтральный фон, мягкий свет',
+            'Корпоративное фото в офисе, профессиональная одежда',
+            'LinkedIn профиль, уверенный взгляд, премиальный фон'
+          ]
+        },
+        {
+          title: 'Модные фотосессии',
+          prompts: [
+            'Модный портрет в стиле Vogue, драматическое освещение',
+            'Уличная мода, городской фон, современный стиль',
+            'Эдиториальный портрет, хай-фэшн образ'
+          ]
+        },
+        {
+          title: 'Креативные сюжеты',
+          prompts: [
+            'Винтажный портрет 70-х, теплые тона, ретро фильтр',
+            'Студийный портрет с цветным фоном, художественное освещение',
+            'Природный портрет на закате, золотой час'
+          ]
+        }
+      ],
+      tip: 'Совет: Чем более детально описание, тем лучше результат'
     }
   },
   en: {
@@ -123,6 +155,7 @@ export const translations = {
       generator: 'Generator',
       gallery: 'Gallery',
       examples: 'Examples',
+      prompts: 'Prompts',
       faq: 'FAQ',
       pricing: 'Pricing',
       support: 'Support',
@@ -233,6 +266,37 @@ export const translations = {
     },
     footer: {
       copyright: '© 2025 PhotoSet. All rights reserved.'
+    },
+    prompts: {
+      title: 'Generation Prompts',
+      subtitle: 'Examples of effective prompts for creating perfect photoshoots',
+      categories: [
+        {
+          title: 'Professional Portraits',
+          prompts: [
+            'Business portrait in suit, neutral background, soft light',
+            'Corporate photo in office, professional attire',
+            'LinkedIn profile, confident look, premium background'
+          ]
+        },
+        {
+          title: 'Fashion Photoshoots',
+          prompts: [
+            'Fashion portrait in Vogue style, dramatic lighting',
+            'Street fashion, urban background, modern style',
+            'Editorial portrait, high-fashion look'
+          ]
+        },
+        {
+          title: 'Creative Scenes',
+          prompts: [
+            '70s vintage portrait, warm tones, retro filter',
+            'Studio portrait with colored background, artistic lighting',
+            'Nature portrait at sunset, golden hour'
+          ]
+        }
+      ],
+      tip: 'Tip: The more detailed the description, the better the result'
     }
   }
 };

@@ -96,6 +96,13 @@ const Index = () => {
               <Button 
                 variant="ghost" 
                 className="text-white hover:text-primary hover:bg-white/5"
+                onClick={() => setActiveTab('prompts')}
+              >
+                {t.nav.prompts}
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="text-white hover:text-primary hover:bg-white/5"
                 onClick={() => setActiveTab('faq')}
               >
                 {t.nav.faq}
@@ -347,6 +354,44 @@ const Index = () => {
                   </Button>
                 </Card>
               ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'prompts' && (
+          <div className="container mx-auto px-6 py-20">
+            <h1 className="text-4xl font-bold text-white text-center mb-4">{t.prompts.title}</h1>
+            <p className="text-gray-400 text-center mb-12 max-w-2xl mx-auto">{t.prompts.subtitle}</p>
+            
+            <div className="max-w-5xl mx-auto space-y-8">
+              {t.prompts.categories.map((category, idx) => (
+                <Card key={idx} className="bg-white/5 backdrop-blur-sm border-white/10 p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Icon name={idx === 0 ? 'Briefcase' : idx === 1 ? 'Sparkles' : 'Palette'} size={20} className="text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white">{category.title}</h2>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {category.prompts.map((prompt, pIdx) => (
+                      <div key={pIdx} className="bg-black/20 rounded-lg p-4 border border-white/5 hover:border-primary/30 transition-all">
+                        <div className="flex items-start gap-3">
+                          <Icon name="Copy" size={18} className="text-primary mt-1 flex-shrink-0" />
+                          <p className="text-gray-300">{prompt}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ))}
+              
+              <Card className="bg-primary/10 border-primary/30 p-6">
+                <div className="flex items-start gap-3">
+                  <Icon name="Lightbulb" size={24} className="text-primary flex-shrink-0" />
+                  <p className="text-white font-medium">{t.prompts.tip}</p>
+                </div>
+              </Card>
             </div>
           </div>
         )}
