@@ -13,8 +13,8 @@ const Login = () => {
   const { toast } = useToast();
 
   const quickLoginAsAdmin = async () => {
-    setEmail('diana2025@photoset.ai');
-    setPassword('123Diana_123');
+    setEmail('diana@photoset.ai');
+    setPassword('Diana123');
     setIsLoading(true);
 
     try {
@@ -24,8 +24,8 @@ const Login = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          email: 'diana2025@photoset.ai', 
-          password: '123Diana_123' 
+          email: 'diana@photoset.ai', 
+          password: 'Diana123' 
         })
       });
 
