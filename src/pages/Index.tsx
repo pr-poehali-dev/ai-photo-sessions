@@ -332,14 +332,14 @@ const Index = () => {
             <h1 className="text-4xl font-bold text-white text-center mb-12">{t.pricing.title}</h1>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {[
-                { price: '9' },
-                { price: '29' },
-                { price: '99' }
+                { price: '500' },
+                { price: '1000' },
+                { price: '1500' }
               ].map((plan, idx) => (
                 <Card key={idx} className={`p-8 ${idx === 1 ? 'bg-primary border-primary scale-105' : 'bg-white/5 border-white/10'}`}>
                   <h3 className="text-2xl font-bold text-white mb-2">{t.pricing.plans[idx].name}</h3>
                   <div className="text-4xl font-bold text-white mb-4">
-                    ${plan.price}<span className="text-lg text-gray-400">{t.pricing.perMonth}</span>
+                    {plan.price} ₽<span className="text-lg text-gray-400">{t.pricing.perMonth}</span>
                   </div>
                   <p className="text-gray-300 mb-6">{t.pricing.plans[idx].credits}</p>
                   <Button className={`w-full ${idx === 1 ? 'bg-white text-primary hover:bg-white/90' : 'bg-primary hover:bg-primary/90 text-white'}`}>
