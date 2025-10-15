@@ -173,6 +173,20 @@ const Index = () => {
 
       if (data.success && data.image_url) {
         setGeneratedImage(data.image_url);
+        
+        await fetch('https://functions.poehali.dev/ed30ba91-7de2-406c-a2aa-91ad833c0ac8', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: 1,
+            prompt: promptText,
+            image_url: data.image_url,
+            theme: selectedTheme,
+            model: 'dall-e-3'
+          })
+        });
       } else {
         alert(data.error || (language === 'ru' ? 'Ошибка генерации' : 'Generation error'));
       }
@@ -739,8 +753,15 @@ const Index = () => {
 
       <footer className="bg-black/80 backdrop-blur-md border-t border-white/10 mt-20">
         <div className="container mx-auto px-6 py-8">
-          <div className="text-center text-gray-400">
-            <p>{t.footer.copyright}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-gray-400">{t.footer.copyright}</p>
+            <a
+              href="/admin"
+              className="text-gray-500 hover:text-primary transition-colors text-sm"
+              title="Admin"
+            >
+              <Icon name="Shield" size={16} />
+            </a>
           </div>
         </div>
       </footer>
