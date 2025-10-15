@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Test admin authentication required",
+      "method": "GET",
+      "path": "/?action=list-promos",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "AUTH_REQUIRED"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

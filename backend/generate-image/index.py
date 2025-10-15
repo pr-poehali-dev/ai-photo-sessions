@@ -65,7 +65,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cur.execute(
         """
         SELECT u.id, u.free_generations_used, u.free_generations_limit, 
-               u.subscription_status, u.credits, u.plan
+               u.subscription_status, u.credits, u.plan, u.is_admin
         FROM user_sessions s
         JOIN users u ON s.user_id = u.id
         WHERE s.session_token = %s AND s.expires_at > CURRENT_TIMESTAMP
@@ -86,9 +86,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': 'Invalid or expired session', 'code': 'AUTH_REQUIRED'})
         }
     
-    user_id, free_used, free_limit, sub_status, credits, plan = user_data
+    user_id, free_used, free_limit, sub_status, credits, plan, is_admin = user_data
     
-    if sub_status == 'none' or sub_status is None:
+    if is_admin:
+        pass
+    elif sub_status == 'none' or sub_status is None:
         if free_used >= free_limit:
             cur.close()
             conn.close()
@@ -106,7 +108,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'message': 'You have used all 3 free generations. Please subscribe to continue.'
                 })
             }
-    elif sub_status == 'active':
+    else:
         if credits <= 0:
             cur.close()
             conn.close()
@@ -192,17 +194,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     result = response.json()
     image_url = result.get('data', [{}])[0].get('url', '')
     
-    if sub_status == 'none' or sub_status is None:
-        cur.execute(
-            "UPDATE users SET free_generations_used = free_generations_used + 1 WHERE id = %s",
-            (user_id,)
-        )
-        new_used = free_used + 1
+    if not is_admin:
+        if sub_status == 'none' or sub_status is None:
+            cur.execute(
+                "UPDATE users SET free_generations_used = free_generations_used + 1 WHERE id = %s",
+                (user_id,)
+            )
+            new_used = free_used + 1
+        else:
+            cur.execute(
+                "UPDATE users SET credits = credits - 1 WHERE id = %s",
+                (user_id,)
+            )
+            new_used = free_used
     else:
-        cur.execute(
-            "UPDATE users SET credits = credits - 1 WHERE id = %s",
-            (user_id,)
-        )
         new_used = free_used
     
     conn.commit()

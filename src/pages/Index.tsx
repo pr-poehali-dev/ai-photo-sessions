@@ -6,6 +6,7 @@ import Icon from '@/components/ui/icon';
 import { translations, Language } from '@/i18n/translations';
 import { useToast } from '@/hooks/use-toast';
 import ShareDialog from '@/components/ShareDialog';
+import AdminPanel from '@/components/AdminPanel';
 
 interface User {
   id: number;
@@ -728,11 +729,41 @@ const Index = () => {
 
         {activeTab === 'gallery' && (
           <div className="container mx-auto px-6 py-20">
-            <h1 className="text-4xl font-bold text-white mb-8">{t.gallery.title}</h1>
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="text-4xl font-bold text-white">{t.gallery.title}</h1>
+              {user?.is_admin && (
+                <Button 
+                  className="gradient-bg hover:opacity-90 text-white"
+                  onClick={() => {
+                    toast({
+                      title: 'Функция в разработке',
+                      description: 'Скоро здесь можно будет добавлять изображения',
+                    });
+                  }}
+                >
+                  <Icon name="Plus" size={18} className="mr-2" />
+                  Добавить фото
+                </Button>
+              )}
+            </div>
             <div className="horizontal-scroll pb-4">
               <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
                 {gallery.map((item) => (
-                  <Card key={item.id} className="overflow-hidden bg-white/5 border-white/10 hover:scale-105 transition-transform w-96 flex-shrink-0">
+                  <Card key={item.id} className="overflow-hidden bg-white/5 border-white/10 hover:scale-105 transition-transform w-96 flex-shrink-0 relative group">
+                    {user?.is_admin && (
+                      <Button
+                        size="sm"
+                        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-primary/90 hover:bg-primary text-white"
+                        onClick={() => {
+                          toast({
+                            title: 'Функция в разработке',
+                            description: 'Скоро здесь можно будет редактировать',
+                          });
+                        }}
+                      >
+                        <Icon name="Edit" size={14} />
+                      </Button>
+                    )}
                     <img src={item.url} alt={item.theme} className="w-full h-80 object-cover" />
                     <div className="p-4 flex items-center justify-between">
                       <p className="text-white font-medium">{item.theme}</p>
@@ -780,11 +811,41 @@ const Index = () => {
 
         {activeTab === 'examples' && (
           <div className="container mx-auto px-6 py-20">
-            <h1 className="text-4xl font-bold text-white mb-8">{t.examples.title}</h1>
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="text-4xl font-bold text-white">{t.examples.title}</h1>
+              {user?.is_admin && (
+                <Button 
+                  className="gradient-bg hover:opacity-90 text-white"
+                  onClick={() => {
+                    toast({
+                      title: 'Функция в разработке',
+                      description: 'Скоро здесь можно будет добавлять примеры',
+                    });
+                  }}
+                >
+                  <Icon name="Plus" size={18} className="mr-2" />
+                  Добавить пример
+                </Button>
+              )}
+            </div>
             <div className="horizontal-scroll pb-4">
               <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
                 {themes.map((theme) => (
-                  <Card key={theme.id} className="overflow-hidden bg-white/5 border-white/10 w-96 flex-shrink-0 hover:scale-105 transition-transform">
+                  <Card key={theme.id} className="overflow-hidden bg-white/5 border-white/10 w-96 flex-shrink-0 hover:scale-105 transition-transform relative group">
+                    {user?.is_admin && (
+                      <Button
+                        size="sm"
+                        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-primary/90 hover:bg-primary text-white"
+                        onClick={() => {
+                          toast({
+                            title: 'Функция в разработке',
+                            description: 'Скоро здесь можно будет редактировать',
+                          });
+                        }}
+                      >
+                        <Icon name="Edit" size={14} />
+                      </Button>
+                    )}
                     <img 
                       src="https://v3b.fal.media/files/b/tiger/HBqy7ktdkNZQbMq0c1DPY_output.png" 
                       alt={theme.name} 
@@ -1117,6 +1178,73 @@ const Index = () => {
                         <p className="text-gray-400 text-sm">{t.profile.plan}</p>
                       </Card>
                     </div>
+                    {!user.is_admin && (
+                      <Card className="bg-primary/10 border-primary/20 p-6 mb-6">
+                        <h3 className="text-lg font-semibold text-white mb-3">Есть промокод?</h3>
+                        <div className="flex gap-3">
+                          <input
+                            type="text"
+                            placeholder="Введите промокод"
+                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 uppercase"
+                            id="promo-code-input"
+                          />
+                          <Button
+                            className="gradient-bg hover:opacity-90 text-white px-6"
+                            onClick={async () => {
+                              const input = document.getElementById('promo-code-input') as HTMLInputElement;
+                              const code = input?.value.trim().toUpperCase();
+                              
+                              if (!code) {
+                                toast({
+                                  title: 'Ошибка',
+                                  description: 'Введите промокод',
+                                  variant: 'destructive',
+                                });
+                                return;
+                              }
+                              
+                              try {
+                                const response = await fetch('https://functions.poehali.dev/5025b042-4262-4d95-b9b5-769321f3eb1b?action=activate-promo', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Session-Token': localStorage.getItem('session_token') || ''
+                                  },
+                                  body: JSON.stringify({ code })
+                                });
+                                
+                                const data = await response.json();
+                                
+                                if (data.success) {
+                                  toast({
+                                    title: 'Успешно! 🎉',
+                                    description: data.message,
+                                  });
+                                  input.value = '';
+                                  window.location.reload();
+                                } else {
+                                  toast({
+                                    title: 'Ошибка',
+                                    description: data.message || 'Не удалось активировать промокод',
+                                    variant: 'destructive',
+                                  });
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: 'Ошибка',
+                                  description: 'Не удалось активировать промокод',
+                                  variant: 'destructive',
+                                });
+                              }
+                            }}
+                          >
+                            <Icon name="Gift" size={18} className="mr-2" />
+                            Активировать
+                          </Button>
+                        </div>
+                      </Card>
+                    )}
+                    
                     <div className="flex gap-3">
                       <Button 
                         className="flex-1 bg-primary hover:bg-primary/90 text-white"
@@ -1182,6 +1310,13 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {user?.is_admin && (
+        <AdminPanel 
+          sessionToken={localStorage.getItem('session_token') || ''}
+          isAdmin={true}
+        />
+      )}
     </div>
   );
 };
