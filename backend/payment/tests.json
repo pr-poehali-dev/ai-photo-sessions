@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Create order without auth",
+      "method": "POST",
+      "path": "/?action=create-order",
+      "body": {
+        "plan": "starter"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Session token required"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

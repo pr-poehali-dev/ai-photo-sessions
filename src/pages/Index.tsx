@@ -15,6 +15,9 @@ interface User {
   plan: string;
   avatar_url?: string;
   is_admin?: boolean;
+  free_generations_used?: number;
+  free_generations_limit?: number;
+  subscription_status?: string;
 }
 
 const Index = () => {
@@ -196,8 +199,22 @@ const Index = () => {
   };
 
   const handleGenerate = async () => {
+    if (!user) {
+      toast({
+        title: language === 'ru' ? 'Требуется авторизация' : 'Authorization required',
+        description: language === 'ru' ? 'Войдите или зарегистрируйтесь для генерации изображений' : 'Login or register to generate images',
+        variant: 'destructive',
+      });
+      navigate('/register');
+      return;
+    }
+
     if (!customPrompt && !selectedTheme) {
-      alert(language === 'ru' ? 'Выберите тему или введите описание' : 'Select a theme or enter description');
+      toast({
+        title: language === 'ru' ? 'Заполните поле' : 'Fill the field',
+        description: language === 'ru' ? 'Выберите тему или введите описание' : 'Select a theme or enter description',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -205,12 +222,14 @@ const Index = () => {
     setGeneratedImage(null);
 
     const promptText = customPrompt || `A professional ${selectedTheme} photoshoot portrait`;
+    const sessionToken = localStorage.getItem('session_token');
 
     try {
       const response = await fetch('https://functions.poehali.dev/7d536f2c-ea7f-4cbb-9f6b-97f5fbd3af1e', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Session-Token': sessionToken || ''
         },
         body: JSON.stringify({
           prompt: promptText,
@@ -221,8 +240,39 @@ const Index = () => {
 
       const data = await response.json();
 
+      if (data.code === 'LIMIT_EXCEEDED') {
+        toast({
+          title: language === 'ru' ? 'Лимит исчерпан' : 'Limit exceeded',
+          description: language === 'ru' ? 
+            `Вы использовали все ${data.free_limit} бесплатные генерации. Оформите подписку для продолжения!` :
+            `You used all ${data.free_limit} free generations. Subscribe to continue!`,
+          variant: 'destructive',
+        });
+        setActiveTab('pricing');
+        return;
+      }
+
+      if (data.code === 'NO_CREDITS') {
+        toast({
+          title: language === 'ru' ? 'Кредиты закончились' : 'No credits',
+          description: language === 'ru' ? 
+            'У вас закончились кредиты. Обновите тариф для продолжения!' :
+            'You have no credits left. Upgrade your plan to continue!',
+          variant: 'destructive',
+        });
+        setActiveTab('pricing');
+        return;
+      }
+
       if (data.success && data.image_url) {
         setGeneratedImage(data.image_url);
+        
+        if (user) {
+          setUser({
+            ...user,
+            credits: data.remaining_credits !== null ? data.remaining_credits : user.credits
+          });
+        }
         
         await fetch('https://functions.poehali.dev/ed30ba91-7de2-406c-a2aa-91ad833c0ac8', {
           method: 'POST',
@@ -230,19 +280,34 @@ const Index = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            user_id: 1,
+            user_id: user.id,
             prompt: promptText,
             image_url: data.image_url,
             theme: selectedTheme,
             model: 'dall-e-3'
           })
         });
+
+        toast({
+          title: language === 'ru' ? 'Готово!' : 'Success!',
+          description: data.remaining_free !== null ? 
+            (language === 'ru' ? `Осталось бесплатных генераций: ${data.remaining_free}` : `Free generations left: ${data.remaining_free}`) :
+            (language === 'ru' ? `Осталось кредитов: ${data.remaining_credits}` : `Credits left: ${data.remaining_credits}`),
+        });
       } else {
-        alert(data.error || (language === 'ru' ? 'Ошибка генерации' : 'Generation error'));
+        toast({
+          title: language === 'ru' ? 'Ошибка' : 'Error',
+          description: data.error || (language === 'ru' ? 'Ошибка генерации' : 'Generation error'),
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Generation error:', error);
-      alert(language === 'ru' ? 'Ошибка подключения к серверу' : 'Server connection error');
+      toast({
+        title: language === 'ru' ? 'Ошибка' : 'Error',
+        description: language === 'ru' ? 'Ошибка подключения к серверу' : 'Server connection error',
+        variant: 'destructive',
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -696,15 +761,54 @@ const Index = () => {
         {activeTab === 'pricing' && (
           <div className="container mx-auto px-6 py-20">
             <h1 className="text-6xl font-black text-center mb-6 gradient-text">{t.pricing.title}</h1>
-            <p className="text-xl text-gray-300 text-center mb-16 max-w-2xl mx-auto">Выберите подходящий тариф для ваших задач</p>
+            <p className="text-xl text-gray-300 text-center mb-8 max-w-2xl mx-auto">Выберите подходящий тариф для ваших задач</p>
+            
+            {!user ? (
+              <Card className="max-w-2xl mx-auto glass-effect p-8 text-center mb-12">
+                <Icon name="Gift" size={64} className="mx-auto mb-4 text-primary" />
+                <h2 className="text-3xl font-bold text-white mb-3">3 бесплатные генерации!</h2>
+                <p className="text-gray-300 text-lg mb-6">
+                  Зарегистрируйтесь и получите 3 бесплатные генерации для знакомства с сервисом
+                </p>
+                <Button 
+                  onClick={() => navigate('/register')}
+                  className="gradient-bg hover:opacity-90 text-white px-8 py-6 text-lg"
+                >
+                  <Icon name="UserPlus" size={20} className="mr-2" />
+                  Зарегистрироваться бесплатно
+                </Button>
+              </Card>
+            ) : user.subscription_status === 'none' && (
+              <Card className="max-w-2xl mx-auto glass-effect p-8 text-center mb-12 border-primary/50">
+                <div className="flex items-center justify-center gap-4 mb-4">
+                  <Icon name="Zap" size={48} className="text-primary animate-pulse" />
+                  <div>
+                    <p className="text-4xl font-black gradient-text">
+                      {user.free_generations_used || 0} / 3
+                    </p>
+                    <p className="text-gray-400">использовано</p>
+                  </div>
+                </div>
+                <p className="text-white text-lg mb-2">
+                  {user.free_generations_used >= 3 ? 
+                    'Вы использовали все бесплатные генерации' : 
+                    `Осталось ${3 - (user.free_generations_used || 0)} бесплатных генераций`
+                  }
+                </p>
+                <p className="text-gray-300">
+                  Оформите подписку, чтобы продолжить создавать изображения!
+                </p>
+              </Card>
+            )}
+            
             <div className="horizontal-scroll pb-4">
               <div className="flex gap-8 px-4" style={{ minWidth: 'max-content' }}>
                 {[
-                  { price: '500', popular: false },
-                  { price: '1000', popular: true },
-                  { price: '1500', popular: false }
-                ].map((plan, idx) => (
-                  <Card key={idx} className={`p-10 relative transition-all duration-300 hover:scale-105 w-96 flex-shrink-0 ${
+                  { id: 'starter', price: '5', credits: '50', popular: false, name: 'Стартовый' },
+                  { id: 'standard', price: '10', credits: '100', popular: true, name: 'Стандартный' },
+                  { id: 'premium', price: '15', credits: '200', popular: false, name: 'Премиум' }
+                ].map((plan) => (
+                  <Card key={plan.id} className={`p-10 relative transition-all duration-300 hover:scale-105 w-96 flex-shrink-0 ${
                     plan.popular 
                       ? 'glass-effect border-primary shadow-2xl shadow-primary/20 animate-glow' 
                       : 'glass-effect hover:border-primary/30'
@@ -716,22 +820,109 @@ const Index = () => {
                         </span>
                       </div>
                     )}
-                    <h3 className="text-3xl font-bold text-white mb-4">{t.pricing.plans[idx].name}</h3>
+                    <h3 className="text-3xl font-bold text-white mb-4">{plan.name}</h3>
                     <div className="mb-6">
-                      <span className="text-6xl font-black gradient-text">{plan.price} ₽</span>
-                      <span className="text-xl text-gray-400 ml-2">{t.pricing.perMonth}</span>
+                      <span className="text-6xl font-black gradient-text">${plan.price}</span>
+                      <span className="text-xl text-gray-400 ml-2">/ месяц</span>
                     </div>
-                    <p className="text-gray-300 mb-8 text-lg">{t.pricing.plans[idx].credits}</p>
-                    <Button className={`w-full py-6 text-lg font-semibold rounded-xl transition-all ${
-                      plan.popular 
-                        ? 'gradient-bg hover:opacity-90 text-white shadow-xl' 
-                        : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                    }`}>
-                      {t.pricing.getStarted}
+                    <p className="text-gray-300 mb-8 text-lg">{plan.credits} генераций</p>
+                    <ul className="text-gray-300 space-y-3 mb-8">
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={20} className="text-primary" />
+                        DALL-E 3 качество
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={20} className="text-primary" />
+                        Без watermark
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={20} className="text-primary" />
+                        Коммерческая лицензия
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={20} className="text-primary" />
+                        Поддержка 24/7
+                      </li>
+                    </ul>
+                    <Button 
+                      onClick={async () => {
+                        if (!user) {
+                          navigate('/register');
+                          return;
+                        }
+                        
+                        const sessionToken = localStorage.getItem('session_token');
+                        try {
+                          const response = await fetch('https://functions.poehali.dev/8d0ec26b-25da-4a04-9d3e-712ff7777a39?action=create-order', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'X-Session-Token': sessionToken || ''
+                            },
+                            body: JSON.stringify({ plan: plan.id })
+                          });
+                          
+                          const data = await response.json();
+                          
+                          if (data.success && data.approve_link) {
+                            window.location.href = data.approve_link;
+                          } else {
+                            toast({
+                              title: 'Ошибка',
+                              description: data.error || 'Не удалось создать платеж',
+                              variant: 'destructive',
+                            });
+                          }
+                        } catch (error) {
+                          console.error('Payment error:', error);
+                          toast({
+                            title: 'Ошибка',
+                            description: 'Не удалось подключиться к PayPal',
+                            variant: 'destructive',
+                          });
+                        }
+                      }}
+                      className={`w-full py-6 text-lg font-semibold rounded-xl transition-all ${
+                        plan.popular 
+                          ? 'gradient-bg hover:opacity-90 text-white shadow-xl' 
+                          : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                      }`}
+                    >
+                      <Icon name="CreditCard" size={20} className="mr-2" />
+                      {user ? 'Оплатить через PayPal' : 'Зарегистрироваться'}
                     </Button>
                   </Card>
                 ))}
               </div>
+            </div>
+            
+            <div className="mt-16 max-w-3xl mx-auto">
+              <Card className="glass-effect p-8">
+                <div className="flex items-start gap-4">
+                  <Icon name="Shield" size={32} className="text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-2xl font-bold text-white mb-3">Безопасность платежей</h3>
+                    <p className="text-gray-300 leading-relaxed mb-4">
+                      Все платежи обрабатываются через защищенную систему PayPal. Мы не храним данные ваших банковских карт. 
+                      Все транзакции защищены 256-битным SSL шифрованием.
+                    </p>
+                    <div className="flex items-center gap-6 text-gray-400">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Lock" size={18} className="text-primary" />
+                        <span className="text-sm">SSL шифрование</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="ShieldCheck" size={18} className="text-primary" />
+                        <span className="text-sm">PCI DSS</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="Check" size={18} className="text-primary" />
+                        <span className="text-sm">PayPal защита</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
             </div>
           </div>
         )}
