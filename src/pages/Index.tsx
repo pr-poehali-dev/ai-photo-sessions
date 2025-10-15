@@ -603,39 +603,41 @@ const Index = () => {
           <div className="container mx-auto px-6 py-20">
             <h1 className="text-6xl font-black text-center mb-6 gradient-text">{t.pricing.title}</h1>
             <p className="text-xl text-gray-300 text-center mb-16 max-w-2xl mx-auto">Выберите подходящий тариф для ваших задач</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {[
-                { price: '500', popular: false },
-                { price: '1000', popular: true },
-                { price: '1500', popular: false }
-              ].map((plan, idx) => (
-                <Card key={idx} className={`p-10 relative transition-all duration-300 hover:scale-105 ${
-                  plan.popular 
-                    ? 'glass-effect border-primary shadow-2xl shadow-primary/20 animate-glow' 
-                    : 'glass-effect hover:border-primary/30'
-                }`}>
-                  {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span className="gradient-bg px-6 py-2 rounded-full text-white text-sm font-bold shadow-lg">
-                        Популярный
-                      </span>
-                    </div>
-                  )}
-                  <h3 className="text-3xl font-bold text-white mb-4">{t.pricing.plans[idx].name}</h3>
-                  <div className="mb-6">
-                    <span className="text-6xl font-black gradient-text">{plan.price} ₽</span>
-                    <span className="text-xl text-gray-400 ml-2">{t.pricing.perMonth}</span>
-                  </div>
-                  <p className="text-gray-300 mb-8 text-lg">{t.pricing.plans[idx].credits}</p>
-                  <Button className={`w-full py-6 text-lg font-semibold rounded-xl transition-all ${
+            <div className="horizontal-scroll pb-4">
+              <div className="flex gap-8 px-4" style={{ minWidth: 'max-content' }}>
+                {[
+                  { price: '500', popular: false },
+                  { price: '1000', popular: true },
+                  { price: '1500', popular: false }
+                ].map((plan, idx) => (
+                  <Card key={idx} className={`p-10 relative transition-all duration-300 hover:scale-105 w-96 flex-shrink-0 ${
                     plan.popular 
-                      ? 'gradient-bg hover:opacity-90 text-white shadow-xl' 
-                      : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                      ? 'glass-effect border-primary shadow-2xl shadow-primary/20 animate-glow' 
+                      : 'glass-effect hover:border-primary/30'
                   }`}>
-                    {t.pricing.getStarted}
-                  </Button>
-                </Card>
-              ))}
+                    {plan.popular && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <span className="gradient-bg px-6 py-2 rounded-full text-white text-sm font-bold shadow-lg">
+                          Популярный
+                        </span>
+                      </div>
+                    )}
+                    <h3 className="text-3xl font-bold text-white mb-4">{t.pricing.plans[idx].name}</h3>
+                    <div className="mb-6">
+                      <span className="text-6xl font-black gradient-text">{plan.price} ₽</span>
+                      <span className="text-xl text-gray-400 ml-2">{t.pricing.perMonth}</span>
+                    </div>
+                    <p className="text-gray-300 mb-8 text-lg">{t.pricing.plans[idx].credits}</p>
+                    <Button className={`w-full py-6 text-lg font-semibold rounded-xl transition-all ${
+                      plan.popular 
+                        ? 'gradient-bg hover:opacity-90 text-white shadow-xl' 
+                        : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                    }`}>
+                      {t.pricing.getStarted}
+                    </Button>
+                  </Card>
+                ))}
+              </div>
             </div>
           </div>
         )}
