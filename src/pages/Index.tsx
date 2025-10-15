@@ -55,7 +55,7 @@ const Index = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="text-2xl font-bold bg-gradient-to-r from-white to-primary bg-clip-text text-transparent">
-              AI PHOTO STUDIO
+              PhotoSet.Now
             </div>
             <div className="flex items-center gap-6">
               <Button 

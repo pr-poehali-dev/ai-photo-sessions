@@ -114,7 +114,7 @@ export const translations = {
       editBtn: 'Редактировать профиль'
     },
     footer: {
-      copyright: '© 2025 AI Photo Studio. Все права защищены.'
+      copyright: '© 2025 PhotoSet.Now. Все права защищены.'
     }
   },
   en: {
@@ -232,7 +232,7 @@ export const translations = {
       editBtn: 'Edit Profile'
     },
     footer: {
-      copyright: '© 2025 AI Photo Studio. All rights reserved.'
+      copyright: '© 2025 PhotoSet.Now. All rights reserved.'
     }
   }
 };
