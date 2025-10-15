@@ -75,6 +75,10 @@ export const translations = {
         {
           q: 'Могу ли я скачать свои фото?',
           a: 'Да, все сгенерированные фото можно скачать в высоком разрешении.'
+        },
+        {
+          q: 'Какие AI модели используются?',
+          a: 'Мы используем OpenAI DALL-E 3 для генерации изображений. Планируется поддержка Midjourney и Stable Diffusion.'
         }
       ]
     },
@@ -225,6 +229,10 @@ export const translations = {
         {
           q: 'Can I download my photos?',
           a: 'Yes, all generated photos can be downloaded in high resolution.'
+        },
+        {
+          q: 'Which AI models are used?',
+          a: 'We use OpenAI DALL-E 3 for image generation. Midjourney and Stable Diffusion support is planned.'
         }
       ]
     },

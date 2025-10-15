@@ -13,6 +13,9 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<Array<{type: string, name: string, action: () => void}>>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
   
   const t = translations[language];
 
@@ -142,8 +145,43 @@ const Index = () => {
     setShowSearchResults(true);
   };
 
-  const handleGenerate = () => {
-    console.log('Generating with theme:', selectedTheme);
+  const handleGenerate = async () => {
+    if (!customPrompt && !selectedTheme) {
+      alert(language === 'ru' ? 'Выберите тему или введите описание' : 'Select a theme or enter description');
+      return;
+    }
+
+    setIsGenerating(true);
+    setGeneratedImage(null);
+
+    const promptText = customPrompt || `A professional ${selectedTheme} photoshoot portrait`;
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/7d536f2c-ea7f-4cbb-9f6b-97f5fbd3af1e', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: promptText,
+          size: '1024x1024',
+          model: 'dall-e-3'
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.image_url) {
+        setGeneratedImage(data.image_url);
+      } else {
+        alert(data.error || (language === 'ru' ? 'Ошибка генерации' : 'Generation error'));
+      }
+    } catch (error) {
+      console.error('Generation error:', error);
+      alert(language === 'ru' ? 'Ошибка подключения к серверу' : 'Server connection error');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -361,9 +399,12 @@ const Index = () => {
         {activeTab === 'generator' && (
           <div className="container mx-auto px-6 py-20">
             <div className="max-w-4xl mx-auto">
-              <h1 className="text-4xl font-bold text-white mb-8">{t.generator.title}</h1>
+              <h1 className="text-5xl font-black text-center mb-4 gradient-text">{t.generator.title}</h1>
+              <p className="text-center text-gray-300 mb-8">
+                {language === 'ru' ? '🤖 Powered by OpenAI DALL-E 3' : '🤖 Powered by OpenAI DALL-E 3'}
+              </p>
               
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-8 mb-6">
+              <Card className="glass-effect p-8 mb-6">
                 <div className="mb-6">
                   <h3 className="text-xl font-semibold text-white mb-4">{t.generator.uploadTitle}</h3>
                   <div className="border-2 border-dashed border-primary/50 rounded-lg p-12 text-center hover:border-primary transition-colors">
@@ -395,6 +436,19 @@ const Index = () => {
                 </div>
 
                 <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-white mb-4">{language === 'ru' ? 'Опишите желаемое изображение' : 'Describe the desired image'}</h3>
+                  <textarea
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder={language === 'ru' ? 'Например: Профессиональный деловой портрет в костюме, нейтральный фон, студийное освещение...' : 'Example: Professional business portrait in suit, neutral background, studio lighting...'}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-32"
+                  />
+                  <p className="text-gray-400 text-sm mt-2">
+                    {language === 'ru' ? '💡 Совет: Укажите стиль, освещение, фон и настроение для лучшего результата' : '💡 Tip: Specify style, lighting, background and mood for best results'}
+                  </p>
+                </div>
+
+                <div className="mb-6">
                   <h3 className="text-xl font-semibold text-white mb-4">{t.generator.chooseTheme}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {themes.map((theme) => (
@@ -402,8 +456,8 @@ const Index = () => {
                         key={theme.id}
                         className={`p-4 cursor-pointer transition-all ${
                           selectedTheme === theme.id 
-                            ? 'bg-primary border-primary' 
-                            : 'bg-white/5 border-white/10 hover:bg-white/10'
+                            ? 'gradient-bg border-primary shadow-lg' 
+                            : 'glass-effect hover:border-primary/30'
                         }`}
                         onClick={() => setSelectedTheme(theme.id)}
                       >
@@ -415,13 +469,51 @@ const Index = () => {
                 </div>
 
                 <Button 
-                  className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg"
-                  disabled={!selectedImage || !selectedTheme}
+                  className="w-full gradient-bg hover:opacity-90 text-white py-6 text-lg font-semibold rounded-xl shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={(!customPrompt && !selectedTheme) || isGenerating}
                   onClick={handleGenerate}
                 >
-                  <Icon name="Sparkles" size={20} className="mr-2" />
-                  {t.generator.generateBtn}
+                  {isGenerating ? (
+                    <>
+                      <Icon name="Loader2" size={20} className="mr-2 animate-spin" />
+                      {language === 'ru' ? 'Генерируем...' : 'Generating...'}
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="Sparkles" size={20} className="mr-2" />
+                      {t.generator.generateBtn}
+                    </>
+                  )}
                 </Button>
+
+                {generatedImage && (
+                  <div className="mt-8">
+                    <h3 className="text-2xl font-bold text-white mb-4">{language === 'ru' ? 'Результат' : 'Result'}</h3>
+                    <Card className="overflow-hidden glass-effect">
+                      <img src={generatedImage} alt="Generated" className="w-full" />
+                      <div className="p-4 flex gap-3">
+                        <Button 
+                          className="flex-1 gradient-bg hover:opacity-90 text-white"
+                          onClick={() => window.open(generatedImage, '_blank')}
+                        >
+                          <Icon name="Download" size={18} className="mr-2" />
+                          {language === 'ru' ? 'Скачать' : 'Download'}
+                        </Button>
+                        <Button 
+                          className="flex-1 bg-white/10 hover:bg-white/20 text-white"
+                          onClick={() => {
+                            setGeneratedImage(null);
+                            setCustomPrompt('');
+                            setSelectedTheme('');
+                          }}
+                        >
+                          <Icon name="RefreshCw" size={18} className="mr-2" />
+                          {language === 'ru' ? 'Новое' : 'New'}
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+                )}
               </Card>
             </div>
           </div>

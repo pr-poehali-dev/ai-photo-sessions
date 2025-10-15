@@ -1,0 +1,40 @@
+{
+  "tests": [
+    {
+      "name": "Test OPTIONS CORS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "",
+      "bodyMatcher": "exact"
+    },
+    {
+      "name": "Test missing prompt",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "size": "1024x1024"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test valid generation request structure",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "prompt": "A professional business portrait photo",
+        "size": "1024x1024",
+        "model": "dall-e-3"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": "boolean"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
