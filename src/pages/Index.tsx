@@ -151,7 +151,7 @@ const Index = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => setActiveTab('home')}>
+            <div className="flex flex-col items-center gap-0.5 cursor-pointer" onClick={() => setActiveTab('home')}>
               <img 
                 src="https://cdn.poehali.dev/projects/2b4ea3db-a438-4e53-a09d-44a613d412ef/files/fe48bd8a-64d0-48f7-9f23-7b5d9060388a.jpg" 
                 alt="PhotoSet" 
@@ -159,6 +159,9 @@ const Index = () => {
               />
               <span className="text-sm font-bold bg-gradient-to-r from-white to-primary bg-clip-text text-transparent whitespace-nowrap">
                 PhotoSet
+              </span>
+              <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                by Davidova
               </span>
             </div>
             <div className="flex items-center gap-6">
