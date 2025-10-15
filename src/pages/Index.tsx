@@ -1,8 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { translations, Language } from '@/i18n/translations';
+import { useToast } from '@/hooks/use-toast';
+
+interface User {
+  id: number;
+  email: string;
+  username: string;
+  full_name?: string;
+  credits: number;
+  plan: string;
+  avatar_url?: string;
+  is_admin?: boolean;
+}
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -16,8 +29,45 @@ const Index = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   const t = translations[language];
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const sessionToken = localStorage.getItem('session_token');
+      const savedUser = localStorage.getItem('user');
+      
+      if (sessionToken && savedUser) {
+        try {
+          const response = await fetch('https://functions.poehali.dev/d72c2702-d925-43c1-9343-c8c94ce97cf1?action=verify', {
+            method: 'GET',
+            headers: {
+              'X-Session-Token': sessionToken
+            }
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            setUser(data.user);
+            localStorage.setItem('user', JSON.stringify(data.user));
+          } else {
+            localStorage.removeItem('session_token');
+            localStorage.removeItem('user');
+          }
+        } catch (error) {
+          console.error('Auth check error:', error);
+        }
+      }
+      setIsLoadingUser(false);
+    };
+    
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -334,13 +384,53 @@ const Index = () => {
               >
                 {language === 'ru' ? '🇬🇧 EN' : '🇷🇺 RU'}
               </Button>
-              <Button 
-                variant="ghost" 
-                className="text-white hover:text-primary hover:bg-white/5"
-                onClick={() => setActiveTab('profile')}
-              >
-                <Icon name="User" size={20} />
-              </Button>
+              {isLoadingUser ? (
+                <div className="w-10 h-10 flex items-center justify-center">
+                  <Icon name="Loader2" size={20} className="text-white animate-spin" />
+                </div>
+              ) : user ? (
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    className="text-white hover:text-primary hover:bg-white/5"
+                    onClick={() => setActiveTab('profile')}
+                  >
+                    <Icon name="User" size={20} className="mr-2" />
+                    {user.username}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="text-white hover:text-red-500 hover:bg-white/5"
+                    onClick={() => {
+                      localStorage.removeItem('session_token');
+                      localStorage.removeItem('user');
+                      setUser(null);
+                      toast({
+                        title: 'Выход выполнен',
+                        description: 'До скорой встречи!',
+                      });
+                    }}
+                  >
+                    <Icon name="LogOut" size={20} />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    className="text-white hover:text-primary hover:bg-white/5"
+                    onClick={() => navigate('/login')}
+                  >
+                    Войти
+                  </Button>
+                  <Button 
+                    className="gradient-bg hover:opacity-90 text-white"
+                    onClick={() => navigate('/register')}
+                  >
+                    Регистрация
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -727,35 +817,88 @@ const Index = () => {
         {activeTab === 'profile' && (
           <div className="container mx-auto px-6 py-20">
             <div className="max-w-2xl mx-auto">
-              <h1 className="text-4xl font-bold text-white mb-8">{t.profile.title}</h1>
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-8">
-                <div className="flex items-center gap-6 mb-8">
-                  <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Icon name="User" size={48} className="text-primary" />
+              {user ? (
+                <>
+                  <h1 className="text-4xl font-bold text-white mb-8">{t.profile.title}</h1>
+                  <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-8">
+                    <div className="flex items-center gap-6 mb-8">
+                      <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
+                        {user.avatar_url ? (
+                          <img src={user.avatar_url} alt={user.username} className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <Icon name="User" size={48} className="text-primary" />
+                        )}
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-white">{user.full_name || user.username}</h2>
+                        <p className="text-gray-400">{user.email}</p>
+                        {user.is_admin && (
+                          <span className="inline-block mt-2 px-3 py-1 bg-primary/20 text-primary text-xs font-semibold rounded-full">
+                            Администратор
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 mb-8">
+                      <Card className="bg-white/5 border-white/10 p-4 text-center">
+                        <p className="text-3xl font-bold text-primary">0</p>
+                        <p className="text-gray-400 text-sm">{t.profile.generated}</p>
+                      </Card>
+                      <Card className="bg-white/5 border-white/10 p-4 text-center">
+                        <p className="text-3xl font-bold text-primary">{user.credits}</p>
+                        <p className="text-gray-400 text-sm">{t.profile.creditsLeft}</p>
+                      </Card>
+                      <Card className="bg-white/5 border-white/10 p-4 text-center">
+                        <p className="text-3xl font-bold text-primary capitalize">{user.plan}</p>
+                        <p className="text-gray-400 text-sm">{t.profile.plan}</p>
+                      </Card>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button 
+                        className="flex-1 bg-primary hover:bg-primary/90 text-white"
+                        onClick={() => setActiveTab('pricing')}
+                      >
+                        <Icon name="CreditCard" size={18} className="mr-2" />
+                        Управление подпиской
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="flex-1 border-white/20 text-white hover:bg-white/10"
+                        onClick={() => {
+                          localStorage.removeItem('session_token');
+                          localStorage.removeItem('user');
+                          setUser(null);
+                          navigate('/login');
+                        }}
+                      >
+                        <Icon name="LogOut" size={18} className="mr-2" />
+                        Выйти
+                      </Button>
+                    </div>
+                  </Card>
+                </>
+              ) : (
+                <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-12 text-center">
+                  <Icon name="Lock" size={64} className="mx-auto mb-6 text-primary" />
+                  <h2 className="text-3xl font-bold text-white mb-4">Требуется авторизация</h2>
+                  <p className="text-gray-400 mb-8">Войдите или зарегистрируйтесь, чтобы получить доступ к профилю</p>
+                  <div className="flex gap-4 justify-center">
+                    <Button 
+                      onClick={() => navigate('/login')}
+                      className="gradient-bg hover:opacity-90 text-white px-8"
+                    >
+                      Войти
+                    </Button>
+                    <Button 
+                      onClick={() => navigate('/register')}
+                      variant="outline"
+                      className="border-white/20 text-white hover:bg-white/10 px-8"
+                    >
+                      Регистрация
+                    </Button>
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">John Doe</h2>
-                    <p className="text-gray-400">john@example.com</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 mb-8">
-                  <Card className="bg-white/5 border-white/10 p-4 text-center">
-                    <p className="text-3xl font-bold text-primary">127</p>
-                    <p className="text-gray-400 text-sm">{t.profile.generated}</p>
-                  </Card>
-                  <Card className="bg-white/5 border-white/10 p-4 text-center">
-                    <p className="text-3xl font-bold text-primary">50</p>
-                    <p className="text-gray-400 text-sm">{t.profile.creditsLeft}</p>
-                  </Card>
-                  <Card className="bg-white/5 border-white/10 p-4 text-center">
-                    <p className="text-3xl font-bold text-primary">{t.pricing.plans[1].name}</p>
-                    <p className="text-gray-400 text-sm">{t.profile.plan}</p>
-                  </Card>
-                </div>
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  {t.profile.editBtn}
-                </Button>
-              </Card>
+                </Card>
+              )}
             </div>
           </div>
         )}

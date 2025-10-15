@@ -1,0 +1,37 @@
+{
+  "tests": [
+    {
+      "name": "Register new user",
+      "method": "POST",
+      "path": "/?action=register",
+      "body": {
+        "email": "newuser@test.com",
+        "password": "password123",
+        "username": "NewUser"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "success": true,
+        "user": {
+          "email": "string"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Login with admin credentials",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {
+        "email": "admin@photoset.com",
+        "password": "admin123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "session_token": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
