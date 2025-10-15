@@ -15,6 +15,35 @@
         "error": "string"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Save new image",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user_id": 1,
+        "prompt": "test prompt",
+        "image_url": "https://example.com/image.png",
+        "theme": "professional",
+        "model": "dall-e-3"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "image": "object"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get user images",
+      "method": "GET",
+      "path": "/?user_id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "images": "array"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

@@ -7,6 +7,8 @@ import { translations, Language } from '@/i18n/translations';
 import { useToast } from '@/hooks/use-toast';
 import ShareDialog from '@/components/ShareDialog';
 import AdminPanel from '@/components/AdminPanel';
+import ImageViewModal from '@/components/ImageViewModal';
+import { useUserImages } from '@/hooks/useUserImages';
 
 interface User {
   id: number;
@@ -36,8 +38,12 @@ const Index = () => {
   const [customPrompt, setCustomPrompt] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [viewingImage, setViewingImage] = useState<{url: string; prompt?: string; theme?: string; createdAt?: string} | null>(null);
+  const [galleryFilter, setGalleryFilter] = useState<'all' | 'favorites'>('all');
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const { images: userImages, loading: loadingImages, toggleFavorite, addImage } = useUserImages(user?.id || null);
   
   const t = translations[language];
 
@@ -276,7 +282,7 @@ const Index = () => {
           });
         }
         
-        await fetch('https://functions.poehali.dev/ed30ba91-7de2-406c-a2aa-91ad833c0ac8', {
+        const saveResponse = await fetch('https://functions.poehali.dev/d94b5564-3eda-4bec-a6fb-a93cd0de2407', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -289,6 +295,11 @@ const Index = () => {
             model: 'dall-e-3'
           })
         });
+        
+        const savedData = await saveResponse.json();
+        if (savedData.success && savedData.image) {
+          addImage(savedData.image);
+        }
 
         toast({
           title: language === 'ru' ? 'Готово!' : 'Success!',
@@ -778,82 +789,94 @@ const Index = () => {
         {activeTab === 'gallery' && (
           <div className="container mx-auto px-6 py-20">
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-white">{t.gallery.title}</h1>
-              {user?.is_admin && (
-                <Button 
-                  className="gradient-bg hover:opacity-90 text-white"
-                  onClick={() => {
-                    toast({
-                      title: 'Функция в разработке',
-                      description: 'Скоро здесь можно будет добавлять изображения',
-                    });
-                  }}
-                >
-                  <Icon name="Plus" size={18} className="mr-2" />
-                  Добавить фото
-                </Button>
-              )}
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-4">{t.gallery.title}</h1>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setGalleryFilter('all')}
+                    className={galleryFilter === 'all' ? 'gradient-bg text-white' : 'bg-white/10 text-white hover:bg-white/20'}
+                  >
+                    <Icon name="Image" size={16} className="mr-2" />
+                    Все ({userImages.length})
+                  </Button>
+                  <Button
+                    onClick={() => setGalleryFilter('favorites')}
+                    className={galleryFilter === 'favorites' ? 'gradient-bg text-white' : 'bg-white/10 text-white hover:bg-white/20'}
+                  >
+                    <Icon name="Heart" size={16} className="mr-2" />
+                    Избранное
+                  </Button>
+                </div>
+              </div>
+              <Button 
+                className="gradient-bg hover:opacity-90 text-white"
+                onClick={() => setActiveTab('generator')}
+              >
+                <Icon name="Plus" size={18} className="mr-2" />
+                Создать новое
+              </Button>
             </div>
-            <div className="horizontal-scroll pb-4">
-              <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
-                {gallery.map((item) => (
-                  <Card key={item.id} className="overflow-hidden bg-white/5 border-white/10 hover:scale-105 transition-transform w-96 flex-shrink-0 relative group">
-                    {user?.is_admin && (
+            
+            {loadingImages ? (
+              <div className="text-center py-20">
+                <Icon name="Loader2" size={48} className="text-primary animate-spin mx-auto mb-4" />
+                <p className="text-gray-400">Загрузка галереи...</p>
+              </div>
+            ) : userImages.length === 0 ? (
+              <Card className="glass-effect p-12 text-center">
+                <Icon name="ImageOff" size={64} className="mx-auto mb-4 text-gray-400" />
+                <h3 className="text-2xl font-bold text-white mb-2">Галерея пуста</h3>
+                <p className="text-gray-400 mb-6">Создайте первое изображение, чтобы увидеть его здесь</p>
+                <Button 
+                  onClick={() => setActiveTab('generator')}
+                  className="gradient-bg hover:opacity-90 text-white"
+                >
+                  <Icon name="Sparkles" size={18} className="mr-2" />
+                  Создать изображение
+                </Button>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {userImages
+                  .filter(img => galleryFilter === 'all' || img.is_favorite)
+                  .map((item) => (
+                  <Card 
+                    key={item.id} 
+                    className="overflow-hidden bg-white/5 border-white/10 hover:scale-105 hover:border-primary/30 transition-all cursor-pointer relative group"
+                    onClick={() => setViewingImage({
+                      url: item.image_url,
+                      prompt: item.prompt,
+                      theme: item.theme,
+                      createdAt: item.created_at
+                    })}
+                  >
+                    <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         size="sm"
-                        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-primary/90 hover:bg-primary text-white"
-                        onClick={() => {
+                        className="bg-white/90 hover:bg-white text-black"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           toast({
-                            title: 'Функция в разработке',
-                            description: 'Скоро здесь можно будет редактировать',
+                            title: 'Добавлено в избранное',
+                            description: 'Изображение сохранено',
                           });
                         }}
                       >
-                        <Icon name="Edit" size={14} />
+                        <Icon name={item.is_favorite ? 'Heart' : 'HeartOff'} size={14} />
                       </Button>
-                    )}
-                    <img src={item.url} alt={item.theme} className="w-full h-80 object-cover" />
-                    <div className="p-4 flex items-center justify-between">
-                      <p className="text-white font-medium">{item.theme}</p>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-white hover:bg-white/10"
-                          onClick={async () => {
-                            try {
-                              const response = await fetch(item.url);
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = `photoset-${item.id}.png`;
-                              document.body.appendChild(a);
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                              document.body.removeChild(a);
-                            } catch (err) {
-                              console.error('Download failed:', err);
-                            }
-                          }}
-                        >
-                          <Icon name="Download" size={16} />
-                        </Button>
-                        <ShareDialog 
-                          imageUrl={item.url}
-                          prompt={item.theme}
-                          trigger={
-                            <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
-                              <Icon name="Share2" size={16} />
-                            </Button>
-                          }
-                        />
+                    </div>
+                    <img src={item.image_url} alt={item.theme} className="w-full h-64 object-cover" />
+                    <div className="p-4">
+                      <p className="text-white font-medium mb-2 line-clamp-2">{item.prompt || item.theme}</p>
+                      <div className="flex items-center justify-between text-sm text-gray-400">
+                        <span>{item.model}</span>
+                        <span>{new Date(item.created_at).toLocaleDateString('ru-RU')}</span>
                       </div>
                     </div>
                   </Card>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -879,21 +902,14 @@ const Index = () => {
             <div className="horizontal-scroll pb-4">
               <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
                 {themes.map((theme) => (
-                  <Card key={theme.id} className="overflow-hidden bg-white/5 border-white/10 w-96 flex-shrink-0 hover:scale-105 transition-transform relative group">
-                    {user?.is_admin && (
-                      <Button
-                        size="sm"
-                        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-primary/90 hover:bg-primary text-white"
-                        onClick={() => {
-                          toast({
-                            title: 'Функция в разработке',
-                            description: 'Скоро здесь можно будет редактировать',
-                          });
-                        }}
-                      >
-                        <Icon name="Edit" size={14} />
-                      </Button>
-                    )}
+                  <Card 
+                    key={theme.id} 
+                    className="overflow-hidden bg-white/5 border-white/10 w-96 flex-shrink-0 hover:scale-105 hover:border-primary/30 transition-all cursor-pointer relative group"
+                    onClick={() => setViewingImage({
+                      url: 'https://v3b.fal.media/files/b/tiger/HBqy7ktdkNZQbMq0c1DPY_output.png',
+                      theme: theme.name
+                    })}
+                  >
                     <img 
                       src="https://v3b.fal.media/files/b/tiger/HBqy7ktdkNZQbMq0c1DPY_output.png" 
                       alt={theme.name} 
@@ -909,7 +925,12 @@ const Index = () => {
                           imageUrl="https://v3b.fal.media/files/b/tiger/HBqy7ktdkNZQbMq0c1DPY_output.png"
                           prompt={theme.name}
                           trigger={
-                            <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="text-white hover:bg-white/10"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <Icon name="Share2" size={16} />
                             </Button>
                           }
@@ -1363,6 +1384,21 @@ const Index = () => {
         <AdminPanel 
           sessionToken={localStorage.getItem('session_token') || ''}
           isAdmin={true}
+        />
+      )}
+
+      {viewingImage && (
+        <ImageViewModal
+          imageUrl={viewingImage.url}
+          prompt={viewingImage.prompt}
+          theme={viewingImage.theme}
+          createdAt={viewingImage.createdAt}
+          onClose={() => setViewingImage(null)}
+          onRegenerate={(prompt) => {
+            setCustomPrompt(prompt);
+            setActiveTab('generator');
+            setViewingImage(null);
+          }}
         />
       )}
     </div>
