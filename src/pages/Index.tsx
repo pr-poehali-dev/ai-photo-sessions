@@ -511,7 +511,7 @@ const Index = () => {
               <h1 className="text-7xl font-black mb-6 gradient-text animate-fade-in">
                 {t.hero.title}
               </h1>
-              <p className="text-2xl text-gray-300 mb-10 animate-fade-in-up font-light" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+              <p className="text-2xl text-gray-100 mb-10 animate-fade-in-up font-light drop-shadow-lg" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
                 {t.hero.subtitle}
               </p>
               <Button 
@@ -530,21 +530,21 @@ const Index = () => {
                   <Icon name="Sparkles" size={28} className="text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">{t.features.faceSwap.title}</h3>
-                <p className="text-gray-300 leading-relaxed">{t.features.faceSwap.description}</p>
+                <p className="text-gray-200 leading-relaxed">{t.features.faceSwap.description}</p>
               </Card>
               <Card className="glass-effect p-8 hover:scale-105 hover:border-primary/30 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
                 <div className="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center mb-6 group-hover:animate-float">
                   <Icon name="Palette" size={28} className="text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">{t.features.themes.title}</h3>
-                <p className="text-gray-300 leading-relaxed">{t.features.themes.description}</p>
+                <p className="text-gray-200 leading-relaxed">{t.features.themes.description}</p>
               </Card>
               <Card className="glass-effect p-8 hover:scale-105 hover:border-primary/30 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
                 <div className="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center mb-6 group-hover:animate-float">
                   <Icon name="Zap" size={28} className="text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">{t.features.fast.title}</h3>
-                <p className="text-gray-300 leading-relaxed">{t.features.fast.description}</p>
+                <p className="text-gray-200 leading-relaxed">{t.features.fast.description}</p>
               </Card>
             </div>
 
@@ -579,24 +579,33 @@ const Index = () => {
               
               <Card className="glass-effect p-8 mb-6">
                 <div className="mb-6">
-                  <h3 className="text-xl font-semibold text-white mb-4">{t.generator.uploadTitle}</h3>
-                  <div className="border-2 border-dashed border-primary/50 rounded-lg p-12 text-center hover:border-primary transition-colors">
+                  <h3 className="text-xl font-semibold text-white mb-4">
+                    {language === 'ru' ? '📸 Загрузите фото (опционально)' : '📸 Upload photo (optional)'}
+                  </h3>
+                  <p className="text-gray-300 text-sm mb-4">
+                    {language === 'ru' 
+                      ? 'Загрузите своё фото, чтобы применить к нему выбранный стиль или создать вариацию' 
+                      : 'Upload your photo to apply selected style or create variation'}
+                  </p>
+                  <div className="border-2 border-dashed border-primary/50 rounded-lg p-8 text-center hover:border-primary transition-colors bg-black/20">
                     {selectedImage ? (
                       <div className="flex flex-col items-center">
-                        <img src={selectedImage} alt="Selected" className="w-48 h-48 object-cover rounded-lg mb-4" />
+                        <img src={selectedImage} alt="Selected" className="w-64 h-64 object-cover rounded-lg mb-4 shadow-xl" />
+                        <p className="text-gray-300 mb-4">✅ Фото загружено! Выберите стиль ниже для применения</p>
                         <Button 
                           variant="outline" 
                           onClick={() => setSelectedImage(null)}
-                          className="border-white/20 text-white hover:bg-white/10"
+                          className="border-white/30 text-white hover:bg-white/10"
                         >
+                          <Icon name="X" size={16} className="mr-2" />
                           {t.generator.changePhoto}
                         </Button>
                       </div>
                     ) : (
-                      <label className="cursor-pointer">
+                      <label className="cursor-pointer block">
                         <Icon name="Upload" size={48} className="mx-auto mb-4 text-primary" />
-                        <p className="text-white mb-2">{t.generator.uploadText}</p>
-                        <p className="text-gray-400 text-sm">{t.generator.uploadSubtext}</p>
+                        <p className="text-white font-semibold mb-2">{t.generator.uploadText}</p>
+                        <p className="text-gray-300 text-sm">{t.generator.uploadSubtext}</p>
                         <input 
                           type="file" 
                           className="hidden" 
@@ -609,28 +618,49 @@ const Index = () => {
                 </div>
 
                 <div className="mb-6">
-                  <h3 className="text-xl font-semibold text-white mb-4">{language === 'ru' ? 'Опишите желаемое изображение' : 'Describe the desired image'}</h3>
+                  <h3 className="text-xl font-semibold text-white mb-4">
+                    {language === 'ru' ? '✍️ Опишите желаемое изображение' : '✍️ Describe the desired image'}
+                  </h3>
                   <textarea
                     value={customPrompt}
                     onChange={(e) => setCustomPrompt(e.target.value)}
-                    placeholder={language === 'ru' ? 'Например: Профессиональный деловой портрет в костюме, нейтральный фон, студийное освещение...' : 'Example: Professional business portrait in suit, neutral background, studio lighting...'}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-32"
+                    placeholder={selectedImage 
+                      ? (language === 'ru' 
+                        ? 'Например: преобразуй в стиле аниме, добавь фон с горами, сделай профессиональный портрет...' 
+                        : 'Example: transform to anime style, add mountain background, make professional portrait...')
+                      : (language === 'ru' 
+                        ? 'Например: Профессиональный деловой портрет в костюме, нейтральный фон, студийное освещение...' 
+                        : 'Example: Professional business portrait in suit, neutral background, studio lighting...')
+                    }
+                    className="w-full bg-black/30 border border-white/20 rounded-xl px-4 py-4 text-white placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-32"
                   />
-                  <p className="text-gray-400 text-sm mt-2">
-                    {language === 'ru' ? '💡 Совет: Укажите стиль, освещение, фон и настроение для лучшего результата' : '💡 Tip: Specify style, lighting, background and mood for best results'}
+                  <p className="text-gray-300 text-sm mt-2">
+                    {selectedImage 
+                      ? (language === 'ru' 
+                        ? '💡 Совет: Опишите, как трансформировать загруженное фото (стиль, эффекты, фон)' 
+                        : '💡 Tip: Describe how to transform uploaded photo (style, effects, background)')
+                      : (language === 'ru' 
+                        ? '💡 Совет: Укажите стиль, освещение, фон и настроение для лучшего результата' 
+                        : '💡 Tip: Specify style, lighting, background and mood for best results')
+                    }
                   </p>
                 </div>
 
                 <div className="mb-6">
-                  <h3 className="text-xl font-semibold text-white mb-4">{t.generator.chooseTheme}</h3>
+                  <h3 className="text-xl font-semibold text-white mb-4">
+                    {selectedImage 
+                      ? (language === 'ru' ? '🎨 Или выберите готовый стиль' : '🎨 Or choose ready style')
+                      : t.generator.chooseTheme
+                    }
+                  </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {themes.map((theme) => (
                       <Card 
                         key={theme.id}
                         className={`p-4 cursor-pointer transition-all ${
                           selectedTheme === theme.id 
-                            ? 'gradient-bg border-primary shadow-lg' 
-                            : 'glass-effect hover:border-primary/30'
+                            ? 'gradient-bg border-primary shadow-lg scale-105' 
+                            : 'glass-effect hover:border-primary/50 hover:scale-105'
                         }`}
                         onClick={() => setSelectedTheme(theme.id)}
                       >
@@ -641,6 +671,19 @@ const Index = () => {
                   </div>
                 </div>
 
+                {selectedImage && (
+                  <Card className="bg-primary/10 border-primary/30 p-4 mb-6">
+                    <div className="flex items-center gap-3">
+                      <Icon name="Info" size={20} className="text-primary flex-shrink-0" />
+                      <p className="text-gray-200 text-sm">
+                        {language === 'ru' 
+                          ? 'Фото загружено! Выберите стиль или опишите желаемые изменения выше, затем нажмите "Генерировать"'
+                          : 'Photo uploaded! Choose style or describe desired changes above, then click "Generate"'}
+                      </p>
+                    </div>
+                  </Card>
+                )}
+
                 <Button 
                   className="w-full gradient-bg hover:opacity-90 text-white py-6 text-lg font-semibold rounded-xl shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={(!customPrompt && !selectedTheme) || isGenerating}
@@ -650,6 +693,11 @@ const Index = () => {
                     <>
                       <Icon name="Loader2" size={20} className="mr-2 animate-spin" />
                       {language === 'ru' ? 'Генерируем...' : 'Generating...'}
+                    </>
+                  ) : selectedImage ? (
+                    <>
+                      <Icon name="Wand2" size={20} className="mr-2" />
+                      {language === 'ru' ? 'Применить стиль к фото' : 'Apply style to photo'}
                     </>
                   ) : (
                     <>
