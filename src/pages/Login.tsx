@@ -13,8 +13,8 @@ const Login = () => {
   const { toast } = useToast();
 
   const quickLoginAsAdmin = async () => {
-    setEmail('admin@photoset.ai');
-    setPassword('PhotoSetAdmin2024!');
+    setEmail('diana2025@photoset.ai');
+    setPassword('123Diana_123');
     setIsLoading(true);
 
     try {
@@ -24,8 +24,8 @@ const Login = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          email: 'admin@photoset.ai', 
-          password: 'PhotoSetAdmin2024!' 
+          email: 'diana2025@photoset.ai', 
+          password: '123Diana_123' 
         })
       });
 
@@ -35,8 +35,8 @@ const Login = () => {
         localStorage.setItem('session_token', data.session_token);
         localStorage.setItem('user', JSON.stringify(data.user));
         toast({
-          title: '👑 Вход выполнен',
-          description: `Добро пожаловать, Администратор!`,
+          title: '👑 Добро пожаловать, Diana!',
+          description: `Вы вошли как администратор`,
         });
         navigate('/');
       } else {
