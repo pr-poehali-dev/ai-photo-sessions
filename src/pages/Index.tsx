@@ -538,23 +538,25 @@ const Index = () => {
         {activeTab === 'gallery' && (
           <div className="container mx-auto px-6 py-20">
             <h1 className="text-4xl font-bold text-white mb-8">{t.gallery.title}</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {gallery.map((item) => (
-                <Card key={item.id} className="overflow-hidden bg-white/5 border-white/10 hover:scale-105 transition-transform">
-                  <img src={item.url} alt={item.theme} className="w-full h-80 object-cover" />
-                  <div className="p-4 flex items-center justify-between">
-                    <p className="text-white font-medium">{item.theme}</p>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
-                        <Icon name="Download" size={16} />
-                      </Button>
-                      <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
-                        <Icon name="Share2" size={16} />
-                      </Button>
+            <div className="horizontal-scroll pb-4">
+              <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
+                {gallery.map((item) => (
+                  <Card key={item.id} className="overflow-hidden bg-white/5 border-white/10 hover:scale-105 transition-transform w-96 flex-shrink-0">
+                    <img src={item.url} alt={item.theme} className="w-full h-80 object-cover" />
+                    <div className="p-4 flex items-center justify-between">
+                      <p className="text-white font-medium">{item.theme}</p>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
+                          <Icon name="Download" size={16} />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
+                          <Icon name="Share2" size={16} />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -562,23 +564,25 @@ const Index = () => {
         {activeTab === 'examples' && (
           <div className="container mx-auto px-6 py-20">
             <h1 className="text-4xl font-bold text-white mb-8">{t.examples.title}</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {themes.map((theme) => (
-                <Card key={theme.id} className="overflow-hidden bg-white/5 border-white/10">
-                  <img 
-                    src="https://v3b.fal.media/files/b/tiger/HBqy7ktdkNZQbMq0c1DPY_output.png" 
-                    alt={theme.name} 
-                    className="w-full h-80 object-cover"
-                  />
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Icon name={theme.icon as any} size={20} className="text-primary" />
-                      <h3 className="text-xl font-semibold text-white">{theme.name}</h3>
+            <div className="horizontal-scroll pb-4">
+              <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
+                {themes.map((theme) => (
+                  <Card key={theme.id} className="overflow-hidden bg-white/5 border-white/10 w-96 flex-shrink-0 hover:scale-105 transition-transform">
+                    <img 
+                      src="https://v3b.fal.media/files/b/tiger/HBqy7ktdkNZQbMq0c1DPY_output.png" 
+                      alt={theme.name} 
+                      className="w-full h-80 object-cover"
+                    />
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Icon name={theme.icon as any} size={20} className="text-primary" />
+                        <h3 className="text-xl font-semibold text-white">{theme.name}</h3>
+                      </div>
+                      <p className="text-gray-400">{t.examples.description}</p>
                     </div>
-                    <p className="text-gray-400">{t.examples.description}</p>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -647,9 +651,10 @@ const Index = () => {
             <h1 className="text-6xl font-black text-center mb-6 gradient-text">{t.prompts.title}</h1>
             <p className="text-xl text-gray-300 text-center mb-16 max-w-2xl mx-auto">{t.prompts.subtitle}</p>
             
-            <div className="max-w-5xl mx-auto space-y-8">
+            <div className="horizontal-scroll pb-4">
+              <div className="flex gap-8 px-4" style={{ minWidth: 'max-content' }}>
               {t.prompts.categories.map((category, idx) => (
-                <Card key={idx} className="glass-effect p-10 hover:border-primary/30 transition-all duration-300">
+                <Card key={idx} className="glass-effect p-10 hover:border-primary/30 transition-all duration-300 w-[500px] flex-shrink-0">
                   <div className="flex items-center gap-4 mb-8">
                     <div className="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center">
                       <Icon name={idx === 0 ? 'Briefcase' : idx === 1 ? 'Sparkles' : 'Palette'} size={24} className="text-white" />
@@ -670,12 +675,13 @@ const Index = () => {
                 </Card>
               ))}
               
-              <Card className="gradient-bg p-8 border-0 shadow-2xl">
-                <div className="flex items-start gap-4">
-                  <Icon name="Lightbulb" size={28} className="text-white flex-shrink-0 animate-pulse" />
-                  <p className="text-white font-semibold text-lg leading-relaxed">{t.prompts.tip}</p>
-                </div>
-              </Card>
+                <Card className="gradient-bg p-8 border-0 shadow-2xl w-[500px] flex-shrink-0">
+                  <div className="flex items-start gap-4">
+                    <Icon name="Lightbulb" size={28} className="text-white flex-shrink-0 animate-pulse" />
+                    <p className="text-white font-semibold text-lg leading-relaxed">{t.prompts.tip}</p>
+                  </div>
+                </Card>
+              </div>
             </div>
           </div>
         )}
