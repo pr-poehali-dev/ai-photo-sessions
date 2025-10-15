@@ -137,15 +137,16 @@ const Index = () => {
         {activeTab === 'home' && (
           <div className="container mx-auto px-6 py-20">
             <div className="max-w-4xl mx-auto text-center mb-20">
-              <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-white via-primary to-white bg-clip-text text-transparent">
+              <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-white via-primary to-white bg-clip-text text-transparent animate-fade-in">
                 {t.hero.title}
               </h1>
-              <p className="text-xl text-gray-400 mb-8">
+              <p className="text-xl text-gray-400 mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
                 {t.hero.subtitle}
               </p>
               <Button 
                 size="lg" 
-                className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg"
+                className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg animate-scale-in"
+                style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
                 onClick={() => setActiveTab('generator')}
               >
                 {t.hero.cta}
@@ -154,21 +155,21 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6 hover:bg-white/10 transition-all">
+              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6 hover:bg-white/10 transition-all animate-fade-in-up" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
                 <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
                   <Icon name="Sparkles" size={24} className="text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">{t.features.faceSwap.title}</h3>
                 <p className="text-gray-400">{t.features.faceSwap.description}</p>
               </Card>
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6 hover:bg-white/10 transition-all">
+              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6 hover:bg-white/10 transition-all animate-fade-in-up" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
                 <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
                   <Icon name="Palette" size={24} className="text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">{t.features.themes.title}</h3>
                 <p className="text-gray-400">{t.features.themes.description}</p>
               </Card>
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6 hover:bg-white/10 transition-all">
+              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6 hover:bg-white/10 transition-all animate-fade-in-up" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
                 <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
                   <Icon name="Zap" size={24} className="text-primary" />
                 </div>
@@ -178,10 +179,10 @@ const Index = () => {
             </div>
 
             <div className="mb-12">
-              <h2 className="text-3xl font-bold text-white text-center mb-8">{t.sections.recentExamples}</h2>
+              <h2 className="text-3xl font-bold text-white text-center mb-8 animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'both' }}>{t.sections.recentExamples}</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {examples.map((example, idx) => (
-                  <Card key={idx} className="overflow-hidden bg-white/5 border-white/10 hover:scale-105 transition-transform">
+                  <Card key={idx} className="overflow-hidden bg-white/5 border-white/10 hover:scale-105 transition-transform animate-scale-in" style={{ animationDelay: `${0.9 + idx * 0.1}s`, animationFillMode: 'both' }}>
                     <img src={example.url} alt={example.theme} className="w-full h-64 object-cover" />
                     <div className="p-4">
                       <p className="text-white font-medium">{example.theme}</p>
