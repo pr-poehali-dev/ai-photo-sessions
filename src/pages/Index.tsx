@@ -51,7 +51,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-primary/20">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+      <nav className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => setActiveTab('home')}>
@@ -143,56 +143,59 @@ const Index = () => {
       <main className="pt-20">
         {activeTab === 'home' && (
           <div className="container mx-auto px-6 py-20">
-            <div className="max-w-4xl mx-auto text-center mb-20">
-              <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-white via-primary to-white bg-clip-text text-transparent animate-fade-in">
+            <div className="max-w-4xl mx-auto text-center mb-20 relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-gradient-end/20 blur-[100px] -z-10"></div>
+              <h1 className="text-7xl font-black mb-6 gradient-text animate-fade-in">
                 {t.hero.title}
               </h1>
-              <p className="text-xl text-gray-400 mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+              <p className="text-2xl text-gray-300 mb-10 animate-fade-in-up font-light" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
                 {t.hero.subtitle}
               </p>
               <Button 
                 size="lg" 
-                className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg animate-scale-in"
+                className="gradient-bg hover:opacity-90 text-white px-10 py-7 text-lg font-semibold rounded-2xl shadow-2xl animate-glow transition-all"
                 style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
                 onClick={() => setActiveTab('generator')}
               >
-                {t.hero.cta}
-                <Icon name="ArrowRight" size={20} className="ml-2" />
+                {t.hero.cta} →
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6 hover:bg-white/10 transition-all animate-fade-in-up" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
-                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
-                  <Icon name="Sparkles" size={24} className="text-primary" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+              <Card className="glass-effect p-8 hover:scale-105 hover:border-primary/30 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
+                <div className="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center mb-6 group-hover:animate-float">
+                  <Icon name="Sparkles" size={28} className="text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{t.features.faceSwap.title}</h3>
-                <p className="text-gray-400">{t.features.faceSwap.description}</p>
+                <h3 className="text-2xl font-bold text-white mb-3">{t.features.faceSwap.title}</h3>
+                <p className="text-gray-300 leading-relaxed">{t.features.faceSwap.description}</p>
               </Card>
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6 hover:bg-white/10 transition-all animate-fade-in-up" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
-                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
-                  <Icon name="Palette" size={24} className="text-primary" />
+              <Card className="glass-effect p-8 hover:scale-105 hover:border-primary/30 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
+                <div className="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center mb-6 group-hover:animate-float">
+                  <Icon name="Palette" size={28} className="text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{t.features.themes.title}</h3>
-                <p className="text-gray-400">{t.features.themes.description}</p>
+                <h3 className="text-2xl font-bold text-white mb-3">{t.features.themes.title}</h3>
+                <p className="text-gray-300 leading-relaxed">{t.features.themes.description}</p>
               </Card>
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6 hover:bg-white/10 transition-all animate-fade-in-up" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
-                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
-                  <Icon name="Zap" size={24} className="text-primary" />
+              <Card className="glass-effect p-8 hover:scale-105 hover:border-primary/30 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
+                <div className="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center mb-6 group-hover:animate-float">
+                  <Icon name="Zap" size={28} className="text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{t.features.fast.title}</h3>
-                <p className="text-gray-400">{t.features.fast.description}</p>
+                <h3 className="text-2xl font-bold text-white mb-3">{t.features.fast.title}</h3>
+                <p className="text-gray-300 leading-relaxed">{t.features.fast.description}</p>
               </Card>
             </div>
 
             <div className="mb-12">
-              <h2 className="text-3xl font-bold text-white text-center mb-8 animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'both' }}>{t.sections.recentExamples}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <h2 className="text-5xl font-black text-center mb-12 gradient-text animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'both' }}>{t.sections.recentExamples}</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {examples.map((example, idx) => (
-                  <Card key={idx} className="overflow-hidden bg-white/5 border-white/10 hover:scale-105 transition-transform animate-scale-in" style={{ animationDelay: `${0.9 + idx * 0.1}s`, animationFillMode: 'both' }}>
-                    <img src={example.url} alt={example.theme} className="w-full h-64 object-cover" />
-                    <div className="p-4">
-                      <p className="text-white font-medium">{example.theme}</p>
+                  <Card key={idx} className="overflow-hidden glass-effect hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 animate-scale-in group" style={{ animationDelay: `${0.9 + idx * 0.1}s`, animationFillMode: 'both' }}>
+                    <div className="relative overflow-hidden">
+                      <img src={example.url} alt={example.theme} className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </div>
+                    <div className="p-5">
+                      <p className="text-white font-semibold text-lg">{example.theme}</p>
                     </div>
                   </Card>
                 ))}
@@ -336,20 +339,37 @@ const Index = () => {
 
         {activeTab === 'pricing' && (
           <div className="container mx-auto px-6 py-20">
-            <h1 className="text-4xl font-bold text-white text-center mb-12">{t.pricing.title}</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <h1 className="text-6xl font-black text-center mb-6 gradient-text">{t.pricing.title}</h1>
+            <p className="text-xl text-gray-300 text-center mb-16 max-w-2xl mx-auto">Выберите подходящий тариф для ваших задач</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {[
-                { price: '500' },
-                { price: '1000' },
-                { price: '1500' }
+                { price: '500', popular: false },
+                { price: '1000', popular: true },
+                { price: '1500', popular: false }
               ].map((plan, idx) => (
-                <Card key={idx} className={`p-8 ${idx === 1 ? 'bg-primary border-primary scale-105' : 'bg-white/5 border-white/10'}`}>
-                  <h3 className="text-2xl font-bold text-white mb-2">{t.pricing.plans[idx].name}</h3>
-                  <div className="text-4xl font-bold text-white mb-4">
-                    {plan.price} ₽<span className="text-lg text-gray-400">{t.pricing.perMonth}</span>
+                <Card key={idx} className={`p-10 relative transition-all duration-300 hover:scale-105 ${
+                  plan.popular 
+                    ? 'glass-effect border-primary shadow-2xl shadow-primary/20 animate-glow' 
+                    : 'glass-effect hover:border-primary/30'
+                }`}>
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <span className="gradient-bg px-6 py-2 rounded-full text-white text-sm font-bold shadow-lg">
+                        Популярный
+                      </span>
+                    </div>
+                  )}
+                  <h3 className="text-3xl font-bold text-white mb-4">{t.pricing.plans[idx].name}</h3>
+                  <div className="mb-6">
+                    <span className="text-6xl font-black gradient-text">{plan.price} ₽</span>
+                    <span className="text-xl text-gray-400 ml-2">{t.pricing.perMonth}</span>
                   </div>
-                  <p className="text-gray-300 mb-6">{t.pricing.plans[idx].credits}</p>
-                  <Button className={`w-full ${idx === 1 ? 'bg-white text-primary hover:bg-white/90' : 'bg-primary hover:bg-primary/90 text-white'}`}>
+                  <p className="text-gray-300 mb-8 text-lg">{t.pricing.plans[idx].credits}</p>
+                  <Button className={`w-full py-6 text-lg font-semibold rounded-xl transition-all ${
+                    plan.popular 
+                      ? 'gradient-bg hover:opacity-90 text-white shadow-xl' 
+                      : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                  }`}>
                     {t.pricing.getStarted}
                   </Button>
                 </Card>
@@ -360,25 +380,25 @@ const Index = () => {
 
         {activeTab === 'prompts' && (
           <div className="container mx-auto px-6 py-20">
-            <h1 className="text-4xl font-bold text-white text-center mb-4">{t.prompts.title}</h1>
-            <p className="text-gray-400 text-center mb-12 max-w-2xl mx-auto">{t.prompts.subtitle}</p>
+            <h1 className="text-6xl font-black text-center mb-6 gradient-text">{t.prompts.title}</h1>
+            <p className="text-xl text-gray-300 text-center mb-16 max-w-2xl mx-auto">{t.prompts.subtitle}</p>
             
             <div className="max-w-5xl mx-auto space-y-8">
               {t.prompts.categories.map((category, idx) => (
-                <Card key={idx} className="bg-white/5 backdrop-blur-sm border-white/10 p-8">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Icon name={idx === 0 ? 'Briefcase' : idx === 1 ? 'Sparkles' : 'Palette'} size={20} className="text-primary" />
+                <Card key={idx} className="glass-effect p-10 hover:border-primary/30 transition-all duration-300">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center">
+                      <Icon name={idx === 0 ? 'Briefcase' : idx === 1 ? 'Sparkles' : 'Palette'} size={24} className="text-white" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white">{category.title}</h2>
+                    <h2 className="text-3xl font-bold text-white">{category.title}</h2>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {category.prompts.map((prompt, pIdx) => (
-                      <div key={pIdx} className="bg-black/20 rounded-lg p-4 border border-white/5 hover:border-primary/30 transition-all">
-                        <div className="flex items-start gap-3">
-                          <Icon name="Copy" size={18} className="text-primary mt-1 flex-shrink-0" />
-                          <p className="text-gray-300">{prompt}</p>
+                      <div key={pIdx} className="bg-black/30 rounded-xl p-5 border border-white/10 hover:border-primary/40 hover:bg-black/40 transition-all duration-300 cursor-pointer group">
+                        <div className="flex items-start gap-4">
+                          <Icon name="Copy" size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                          <p className="text-gray-200 leading-relaxed text-lg">{prompt}</p>
                         </div>
                       </div>
                     ))}
@@ -386,10 +406,10 @@ const Index = () => {
                 </Card>
               ))}
               
-              <Card className="bg-primary/10 border-primary/30 p-6">
-                <div className="flex items-start gap-3">
-                  <Icon name="Lightbulb" size={24} className="text-primary flex-shrink-0" />
-                  <p className="text-white font-medium">{t.prompts.tip}</p>
+              <Card className="gradient-bg p-8 border-0 shadow-2xl">
+                <div className="flex items-start gap-4">
+                  <Icon name="Lightbulb" size={28} className="text-white flex-shrink-0 animate-pulse" />
+                  <p className="text-white font-semibold text-lg leading-relaxed">{t.prompts.tip}</p>
                 </div>
               </Card>
             </div>
