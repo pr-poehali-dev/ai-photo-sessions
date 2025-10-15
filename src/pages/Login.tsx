@@ -38,7 +38,7 @@ const Login = () => {
           title: '👑 Добро пожаловать, Diana!',
           description: `Вы вошли как администратор`,
         });
-        navigate('/');
+        navigate('/admin/dashboard');
       } else {
         toast({
           title: 'Ошибка входа',
@@ -80,7 +80,11 @@ const Login = () => {
           title: 'Успешный вход',
           description: `Добро пожаловать, ${data.user.username}!`,
         });
-        navigate('/');
+        if (data.user.is_admin) {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
       } else {
         toast({
           title: 'Ошибка входа',

@@ -49,6 +49,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return handle_reset_request(event, dsn)
     elif action == 'reset-complete':
         return handle_reset_complete(event, dsn)
+    elif action == 'admin_stats':
+        return handle_admin_stats(event, dsn)
+    elif action == 'admin_users':
+        return handle_admin_users(event, dsn)
+    elif action == 'admin_images':
+        return handle_admin_images(event, dsn)
     else:
         return {
             'statusCode': 400,
@@ -454,5 +460,208 @@ def handle_reset_complete(event: Dict[str, Any], dsn: str) -> Dict[str, Any]:
         'body': json.dumps({
             'success': True,
             'message': 'Password has been reset successfully'
+        })
+    }
+
+def verify_admin(session_token: str, dsn: str) -> tuple[bool, int | None]:
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    
+    cur.execute(
+        """
+        SELECT s.user_id, u.is_admin, s.expires_at
+        FROM user_sessions s
+        JOIN users u ON s.user_id = u.id
+        WHERE s.session_token = %s
+        """,
+        (session_token,)
+    )
+    session = cur.fetchone()
+    
+    cur.close()
+    conn.close()
+    
+    if not session:
+        return False, None
+    
+    user_id, is_admin, expires_at = session
+    
+    if datetime.utcnow() > expires_at:
+        return False, None
+    
+    if not is_admin:
+        return False, user_id
+    
+    return True, user_id
+
+def handle_admin_stats(event: Dict[str, Any], dsn: str) -> Dict[str, Any]:
+    headers = event.get('headers', {})
+    session_token = headers.get('X-Session-Token') or headers.get('x-session-token')
+    
+    if not session_token:
+        return {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Session token required'})
+        }
+    
+    is_admin, user_id = verify_admin(session_token, dsn)
+    if not is_admin:
+        return {
+            'statusCode': 403,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Admin access required'})
+        }
+    
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    
+    cur.execute("SELECT COUNT(*) FROM users")
+    total_users = cur.fetchone()[0]
+    
+    cur.execute("SELECT COUNT(*) FROM generated_images")
+    total_images = cur.fetchone()[0]
+    
+    cur.execute("SELECT COALESCE(SUM(credits), 0) FROM users WHERE plan != 'unlimited'")
+    total_credits_used = cur.fetchone()[0]
+    
+    cur.execute("SELECT COUNT(DISTINCT user_id) FROM user_sessions WHERE last_activity > NOW() - INTERVAL '7 days'")
+    active_users = cur.fetchone()[0]
+    
+    cur.close()
+    conn.close()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'isBase64Encoded': False,
+        'body': json.dumps({
+            'success': True,
+            'stats': {
+                'total_users': total_users,
+                'total_images': total_images,
+                'total_credits_used': total_credits_used,
+                'active_users': active_users
+            }
+        })
+    }
+
+def handle_admin_users(event: Dict[str, Any], dsn: str) -> Dict[str, Any]:
+    headers = event.get('headers', {})
+    session_token = headers.get('X-Session-Token') or headers.get('x-session-token')
+    
+    if not session_token:
+        return {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Session token required'})
+        }
+    
+    is_admin, user_id = verify_admin(session_token, dsn)
+    if not is_admin:
+        return {
+            'statusCode': 403,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Admin access required'})
+        }
+    
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    
+    cur.execute(
+        """
+        SELECT id, username, email, credits, plan, is_admin, created_at
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 100
+        """
+    )
+    users = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    
+    users_list = []
+    for user in users:
+        users_list.append({
+            'id': user[0],
+            'username': user[1],
+            'email': user[2],
+            'credits': user[3],
+            'plan': user[4],
+            'is_admin': user[5],
+            'created_at': user[6].isoformat() if user[6] else None
+        })
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'isBase64Encoded': False,
+        'body': json.dumps({
+            'success': True,
+            'users': users_list
+        })
+    }
+
+def handle_admin_images(event: Dict[str, Any], dsn: str) -> Dict[str, Any]:
+    headers = event.get('headers', {})
+    session_token = headers.get('X-Session-Token') or headers.get('x-session-token')
+    
+    if not session_token:
+        return {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Session token required'})
+        }
+    
+    is_admin, user_id = verify_admin(session_token, dsn)
+    if not is_admin:
+        return {
+            'statusCode': 403,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Admin access required'})
+        }
+    
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    
+    cur.execute(
+        """
+        SELECT gi.id, gi.prompt, gi.image_url, gi.theme, gi.model, gi.created_at,
+               u.id, u.username, u.email
+        FROM generated_images gi
+        JOIN users u ON gi.user_id = u.id
+        ORDER BY gi.created_at DESC
+        LIMIT 100
+        """
+    )
+    images = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    
+    images_list = []
+    for img in images:
+        images_list.append({
+            'id': img[0],
+            'prompt': img[1],
+            'image_url': img[2],
+            'theme': img[3],
+            'model': img[4],
+            'created_at': img[5].isoformat() if img[5] else None,
+            'user': {
+                'id': img[6],
+                'username': img[7],
+                'email': img[8]
+            }
+        })
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'isBase64Encoded': False,
+        'body': json.dumps({
+            'success': True,
+            'images': images_list
         })
     }
