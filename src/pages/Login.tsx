@@ -131,12 +131,12 @@ const Login = () => {
           <div>
             <label className="block text-white font-medium mb-2">Пароль</label>
             <input
-              type="password"
+              type="text"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-              placeholder="••••••••"
+              placeholder="Введите пароль"
             />
           </div>
 
