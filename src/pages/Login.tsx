@@ -12,6 +12,52 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const quickLoginAsAdmin = async () => {
+    setEmail('admin@photoset.ai');
+    setPassword('PhotoSetAdmin2024!');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/d72c2702-d925-43c1-9343-c8c94ce97cf1?action=login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: 'admin@photoset.ai', 
+          password: 'PhotoSetAdmin2024!' 
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.session_token) {
+        localStorage.setItem('session_token', data.session_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        toast({
+          title: '👑 Вход выполнен',
+          description: `Добро пожаловать, Администратор!`,
+        });
+        navigate('/');
+      } else {
+        toast({
+          title: 'Ошибка входа',
+          description: data.error || 'Не удалось войти как админ',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: 'Ошибка подключения',
+        description: 'Не удалось подключиться к серверу',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -112,6 +158,18 @@ const Login = () => {
             )}
           </Button>
         </form>
+
+        <div className="mt-6">
+          <Button
+            type="button"
+            onClick={quickLoginAsAdmin}
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white py-4 font-semibold rounded-xl shadow-lg transition-all disabled:opacity-50"
+          >
+            <Icon name="Shield" size={20} className="mr-2" />
+            👑 Быстрый вход как Админ
+          </Button>
+        </div>
 
         <div className="mt-6 text-center space-y-3">
           <button
