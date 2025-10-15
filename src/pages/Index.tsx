@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { translations, Language } from '@/i18n/translations';
 import { useToast } from '@/hooks/use-toast';
+import ShareDialog from '@/components/ShareDialog';
 
 interface User {
   id: number;
@@ -662,16 +663,51 @@ const Index = () => {
                     <h3 className="text-2xl font-bold text-white mb-4">{language === 'ru' ? 'Результат' : 'Result'}</h3>
                     <Card className="overflow-hidden glass-effect">
                       <img src={generatedImage} alt="Generated" className="w-full" />
-                      <div className="p-4 flex gap-3">
+                      <div className="p-4 space-y-3">
+                        <div className="flex gap-3">
+                          <Button 
+                            className="flex-1 gradient-bg hover:opacity-90 text-white"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(generatedImage);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `photoset-ai-${Date.now()}.png`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                                toast({
+                                  title: language === 'ru' ? 'Успешно!' : 'Success!',
+                                  description: language === 'ru' ? 'Изображение загружено' : 'Image downloaded',
+                                });
+                              } catch (err) {
+                                toast({
+                                  title: language === 'ru' ? 'Ошибка' : 'Error',
+                                  description: language === 'ru' ? 'Не удалось загрузить изображение' : 'Failed to download image',
+                                  variant: 'destructive',
+                                });
+                              }
+                            }}
+                          >
+                            <Icon name="Download" size={18} className="mr-2" />
+                            {language === 'ru' ? 'Скачать' : 'Download'}
+                          </Button>
+                          <ShareDialog 
+                            imageUrl={generatedImage}
+                            prompt={customPrompt}
+                            trigger={
+                              <Button className="flex-1 bg-white/10 hover:bg-white/20 text-white border border-white/20">
+                                <Icon name="Share2" size={18} className="mr-2" />
+                                {language === 'ru' ? 'Поделиться' : 'Share'}
+                              </Button>
+                            }
+                          />
+                        </div>
                         <Button 
-                          className="flex-1 gradient-bg hover:opacity-90 text-white"
-                          onClick={() => window.open(generatedImage, '_blank')}
-                        >
-                          <Icon name="Download" size={18} className="mr-2" />
-                          {language === 'ru' ? 'Скачать' : 'Download'}
-                        </Button>
-                        <Button 
-                          className="flex-1 bg-white/10 hover:bg-white/20 text-white"
+                          className="w-full bg-white/5 hover:bg-white/10 text-white"
                           onClick={() => {
                             setGeneratedImage(null);
                             setCustomPrompt('');
@@ -679,7 +715,7 @@ const Index = () => {
                           }}
                         >
                           <Icon name="RefreshCw" size={18} className="mr-2" />
-                          {language === 'ru' ? 'Новое' : 'New'}
+                          {language === 'ru' ? 'Создать новое' : 'Create new'}
                         </Button>
                       </div>
                     </Card>
@@ -701,12 +737,38 @@ const Index = () => {
                     <div className="p-4 flex items-center justify-between">
                       <p className="text-white font-medium">{item.theme}</p>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-white hover:bg-white/10"
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(item.url);
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `photoset-${item.id}.png`;
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              document.body.removeChild(a);
+                            } catch (err) {
+                              console.error('Download failed:', err);
+                            }
+                          }}
+                        >
                           <Icon name="Download" size={16} />
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
-                          <Icon name="Share2" size={16} />
-                        </Button>
+                        <ShareDialog 
+                          imageUrl={item.url}
+                          prompt={item.theme}
+                          trigger={
+                            <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
+                              <Icon name="Share2" size={16} />
+                            </Button>
+                          }
+                        />
                       </div>
                     </div>
                   </Card>
@@ -729,9 +791,20 @@ const Index = () => {
                       className="w-full h-80 object-cover"
                     />
                     <div className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Icon name={theme.icon as any} size={20} className="text-primary" />
-                        <h3 className="text-xl font-semibold text-white">{theme.name}</h3>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Icon name={theme.icon as any} size={20} className="text-primary" />
+                          <h3 className="text-xl font-semibold text-white">{theme.name}</h3>
+                        </div>
+                        <ShareDialog 
+                          imageUrl="https://v3b.fal.media/files/b/tiger/HBqy7ktdkNZQbMq0c1DPY_output.png"
+                          prompt={theme.name}
+                          trigger={
+                            <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
+                              <Icon name="Share2" size={16} />
+                            </Button>
+                          }
+                        />
                       </div>
                       <p className="text-gray-400">{t.examples.description}</p>
                     </div>
